@@ -4,6 +4,9 @@ A modern, visually stunning meeting booking interface built for the ChaseLabs SD
 
 ![Booking Interface](preview.png)
 
+![alt text](https://github.com/rchavezj/book_apointment_task/blob/master/resource/version-2.png)
+
+
 ## 🎯 Overview
 
 This project demonstrates a complete meeting booking flow where prospects can:

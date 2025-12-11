@@ -1,7 +1,8 @@
 <script lang="ts">
-	import { onMount, onDestroy } from 'svelte';
-	import { createMagneticButton, buttonClickEffect } from '$lib/utils/animations';
+	import { onDestroy } from 'svelte';
 	import type { Snippet } from 'svelte';
+	import { createMagneticButton, buttonClickEffect } from '$lib/utils/animations';
+
 
 	interface Props {
 		onclick?: () => void;
@@ -16,12 +17,6 @@
 	let buttonElement: HTMLButtonElement;
 	let cleanup: (() => void) | null = null;
 
-	onMount(() => {
-		if (buttonElement && !disabled) {
-			cleanup = createMagneticButton(buttonElement);
-		}
-	});
-
 	onDestroy(() => {
 		cleanup?.();
 	});
@@ -33,6 +28,12 @@
 		}
 		onclick?.();
 	}
+
+	$effect(() => {
+		if (buttonElement && !disabled) {
+			cleanup = createMagneticButton(buttonElement);
+		}
+	});
 
 	// Re-initialize when disabled changes
 	$effect(() => {

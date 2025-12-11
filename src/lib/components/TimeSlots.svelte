@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import type { TimeSlot } from '$lib/utils/utils';
 	import { staggerFadeIn } from '$lib/utils/animations';
 

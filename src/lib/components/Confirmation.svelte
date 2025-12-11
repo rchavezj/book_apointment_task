@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import type { RepInfo } from '$lib/types/RepInfo';
 	import { drawCheckmark, celebrationBurst, staggerFadeIn } from '$lib/utils/animations';
 
@@ -16,7 +15,7 @@
 	let checkmarkSvg: SVGElement;
 	let detailsContainer: HTMLDivElement;
 
-	onMount(() => {
+	$effect(() => {
 		// Animate checkmark drawing
 		if (checkmarkSvg) {
 			drawCheckmark(checkmarkSvg);

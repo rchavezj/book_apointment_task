@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount, onDestroy } from 'svelte';
+	import { onDestroy } from 'svelte';
 	import * as THREE from 'three';
 
 	let container: HTMLDivElement;
@@ -7,7 +7,7 @@
 	let renderer: THREE.WebGLRenderer | null = null;
 	let prefersReducedMotion = false;
 
-	onMount(() => {
+	$effect(() => {
 		prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 		if (prefersReducedMotion || !container) return;
 

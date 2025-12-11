@@ -1,14 +1,14 @@
 <script lang="ts">
     import * as THREE from 'three';
-	import { onMount, onDestroy } from 'svelte';
+	import { onDestroy } from 'svelte';
 	
 
-	let container: HTMLDivElement;
 	let animationId: number;
+	let container: HTMLDivElement;
 	let renderer: THREE.WebGLRenderer | null = null;
 	let prefersReducedMotion = false;
 
-	onMount(() => {
+	$effect(() => {
 		prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 		if (prefersReducedMotion || !container) return;
 

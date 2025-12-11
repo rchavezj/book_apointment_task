@@ -14,7 +14,7 @@
 
 	
 	let previousSlotCount = $state(0);
-	let slotsContainer = $state<HTMLDivElement | undefined>();
+	let slotsContainer: HTMLDivElement;
 
 	// Animate slots when they change
 	$effect(() => {

@@ -20,6 +20,8 @@
 		getDatesWithAvailability
 	} from '$lib/utils/utils';
 
+	export const ssr = false;
+	
 	const booking = createBookingState();
 
 	const formattedDate = $derived(formatSelectedDate(booking.selectedDate));

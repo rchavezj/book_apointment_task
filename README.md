@@ -4,7 +4,7 @@ A modern, visually stunning meeting booking interface built for the ChaseLabs SD
 
 ![Booking Interface](preview.png)
 
-![alt text](https://github.com/rchavezj/book_apointment_task/blob/master/resource/version-2.png)
+![alt text](https://github.com/rchavezj/book_apointment_task/blob/master/static/version-2.png)
 
 
 ## 🎯 Overview

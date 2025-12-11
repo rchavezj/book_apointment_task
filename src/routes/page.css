@@ -9,7 +9,7 @@
 
 .page-wrapper {
 	min-height: 100vh;
-	background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ed 100%);
+	/* background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ed 100%); */
 	font-family: 'DM Sans', sans-serif;
 	padding: 24px;
 }

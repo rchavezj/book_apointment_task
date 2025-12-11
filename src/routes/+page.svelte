@@ -2,12 +2,14 @@
 	import './page.css';
 	import { onMount } from 'svelte';
 	import { ACME_REP } from '$lib/types/constants';
+	import type { CalendarDay } from '$lib/types/CalendarDay';
 	import RepCard from '$lib/components/RepCard.svelte';
 	import Calendar from '$lib/components/Calendar.svelte';
 	import TimeSlots from '$lib/components/TimeSlots.svelte';
-	import type { CalendarDay } from '$lib/types/CalendarDay';
 	import BookingForm from '$lib/components/BookingForm.svelte';
 	import Confirmation from '$lib/components/Confirmation.svelte';
+	import BackgroundScene from '$lib/components/BackgroundScene.svelte';
+	import ConfirmationScene from '$lib/components/ConfirmationScene.svelte';
 	import { createBookingState, today } from '$lib/stores/booking.svelte';
 	import { getAvailability, scheduleMeeting } from '$lib/client/CalendarAPI';
 	import {
@@ -24,15 +26,20 @@
 	const calendarDays = $derived(generateCalendarDays(booking.currentMonth, today));
 	const datesWithAvailability = $derived(getDatesWithAvailability(booking.availability));
 
-	// Fetch availability when month changes
+	// Check if running in browser (for Three.js)
+	let isBrowser = $state(false);
+
+	onMount(() => {
+		isBrowser = true;
+		fetchMonthAvailability();
+	});
+
 	async function fetchMonthAvailability() {
 		booking.isLoadingSlots = true;
 		booking.error = null;
 		try {
 			const { start, end } = getMonthDateRange(booking.currentMonth);
 			const slots = await getAvailability(start, end);
-
-			console.log(slots)
 			booking.availability = slots;
 		} catch (err) {
 			booking.error = err instanceof Error ? err.message : 'Failed to load availability';
@@ -42,7 +49,6 @@
 		}
 	}
 
-	// Fetch slots when date is selected
 	function updateAvailableSlots() {
 		if (booking.selectedDate && booking.availability.length > 0) {
 			const slots = parseAvailabilityToSlots(
@@ -56,27 +62,21 @@
 		}
 	}
 
-	// Watch for date selection changes
 	$effect(() => {
 		if (booking.selectedDate) {
 			updateAvailableSlots();
 		}
 	});
 
-	// Watch for month changes
 	$effect(() => {
-		// Trigger on currentMonth change
 		booking.currentMonth;
-		fetchMonthAvailability();
-	});
-
-	onMount(() => {
-		fetchMonthAvailability();
+		if (isBrowser) {
+			fetchMonthAvailability();
+		}
 	});
 
 	function handleDateSelect(day: CalendarDay) {
 		if (!day.isCurrentMonth || day.isPast || day.isWeekend || !day.fullDate) return;
-		// Check if date has availability
 		if (!datesWithAvailability.has(day.fullDate)) return;
 		booking.selectedDate = day.fullDate;
 		booking.resetTimeSelection();
@@ -110,9 +110,7 @@
 					}
 				]
 			});
-			
 			booking.step = 'confirmed';
-
 		} catch (err) {
 			booking.error = err instanceof Error ? err.message : 'Failed to schedule meeting';
 			console.error('Failed to schedule meeting:', err);
@@ -147,7 +145,12 @@
 
 		<div class="main-content">
 			<aside class="left-panel">
-				<RepCard rep={ACME_REP} />
+				{#if isBrowser}
+					<BackgroundScene />
+				{/if}
+				<div class="left-panel-content">
+					<RepCard rep={ACME_REP} />
+				</div>
 			</aside>
 
 			<main class="right-panel">
@@ -208,12 +211,19 @@
 						onUpdateForm={(data) => (booking.formData = data)}
 					/>
 				{:else if booking.step === 'confirmed'}
-					<Confirmation
-						email={booking.formData.email}
-						{formattedDate}
-						selectedTime={booking.selectedTime}
-						rep={ACME_REP}
-					/>
+					<div class="confirmation-wrapper">
+						{#if isBrowser}
+							<ConfirmationScene />
+						{/if}
+						<div class="confirmation-content">
+							<Confirmation
+								email={booking.formData.email}
+								{formattedDate}
+								selectedTime={booking.selectedTime}
+								rep={ACME_REP}
+							/>
+						</div>
+					</div>
 				{/if}
 			</main>
 		</div>
@@ -238,6 +248,7 @@
 		align-items: center;
 		font-size: 14px;
 	}
+
 	.error-banner button {
 		background: none;
 		border: none;
@@ -245,5 +256,25 @@
 		cursor: pointer;
 		font-size: 16px;
 		padding: 0 4px;
+	}
+
+	.left-panel {
+		position: relative;
+		overflow: hidden;
+	}
+
+	.left-panel-content {
+		position: relative;
+		z-index: 1;
+	}
+
+	.confirmation-wrapper {
+		position: relative;
+		min-height: 400px;
+	}
+
+	.confirmation-content {
+		position: relative;
+		z-index: 1;
 	}
 </style>

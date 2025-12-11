@@ -1,5 +1,7 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import type { RepInfo } from '$lib/types/RepInfo';
+	import { drawCheckmark, celebrationBurst, staggerFadeIn } from '$lib/utils/animations';
 
 	interface Props {
 		email: string;
@@ -9,13 +11,43 @@
 	}
 
 	let { email, formattedDate, selectedTime, rep }: Props = $props();
+
+	let successIcon: HTMLDivElement;
+	let checkmarkSvg: SVGElement;
+	let detailsContainer: HTMLDivElement;
+
+	onMount(() => {
+		// Animate checkmark drawing
+		if (checkmarkSvg) {
+			drawCheckmark(checkmarkSvg);
+		}
+
+		// Celebration burst
+		if (successIcon) {
+			setTimeout(() => celebrationBurst(successIcon), 300);
+		}
+
+		// Stagger in the details
+		if (detailsContainer) {
+			const items = detailsContainer.querySelectorAll('.confirm-item');
+			staggerFadeIn(items, { delay: 0.5, stagger: 0.1, y: 15 });
+		}
+	});
 </script>
 
 <div class="confirmation-section">
-	<div class="success-icon">
-		<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-			<path class="circle" d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-			<polyline class="checkmark" points="22 4 12 14.01 9 11.01" />
+	<div class="success-icon" bind:this={successIcon}>
+		<svg 
+			bind:this={checkmarkSvg}
+			width="48" 
+			height="48" 
+			viewBox="0 0 24 24" 
+			fill="none" 
+			stroke="currentColor" 
+			stroke-width="2"
+		>
+			<circle cx="12" cy="12" r="10" class="circle" />
+			<polyline points="8 12 11 15 16 9" class="checkmark" />
 		</svg>
 	</div>
 
@@ -24,7 +56,7 @@
 		A calendar invitation has been sent to <strong>{email}</strong>
 	</p>
 
-	<div class="confirm-details">
+	<div class="confirm-details" bind:this={detailsContainer}>
 		<div class="confirm-item">
 			<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#667eea" stroke-width="2">
 				<rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
@@ -39,7 +71,7 @@
 				<circle cx="12" cy="12" r="10" />
 				<polyline points="12 6 12 12 16 14" />
 			</svg>
-			<span>{selectedTime} EST</span>
+			<span>{selectedTime} Local Time</span>
 		</div>
 		<div class="confirm-item">
 			<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#667eea" stroke-width="2">
@@ -61,22 +93,8 @@
 </div>
 
 <style>
-	@keyframes scaleIn {
-		from { transform: scale(0.8); opacity: 0; }
-		to { transform: scale(1); opacity: 1; }
-	}
-
-	@keyframes checkmark {
-		0% { stroke-dashoffset: 50; }
-		100% { stroke-dashoffset: 0; }
-	}
-
-	.confirmation-section {
-		text-align: center;
-		padding-top: 40px;
-		max-width: 600px;
-	}
-
+	.confirmation-section { text-align: center; padding-top: 40px; max-width: 600px; }
+	
 	.success-icon {
 		width: 80px;
 		height: 80px;
@@ -86,16 +104,13 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		animation: scaleIn 0.5s ease-out;
+		position: relative;
+		overflow: visible;
 	}
 
+	.success-icon svg { z-index: 1; }
 	.success-icon .circle { stroke: #667eea; }
-
-	.success-icon .checkmark {
-		stroke: #667eea;
-		stroke-dasharray: 50;
-		animation: checkmark 0.6s ease-out 0.3s forwards;
-	}
+	.success-icon .checkmark { stroke: #667eea; }
 
 	.confirm-title {
 		font-family: 'Fraunces', serif;
@@ -128,6 +143,7 @@
 		gap: 14px;
 		font-size: 15px;
 		color: #374151;
+		opacity: 0;
 	}
 
 	.add-to-calendar {
@@ -163,5 +179,6 @@
 	.calendar-btn:hover {
 		border-color: #667eea;
 		color: #667eea;
+		transform: translateY(-2px);
 	}
 </style>

@@ -387,34 +387,34 @@ The application handles various error states:
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                      +layout.svelte                         │
-│  ┌───────────────────────────────────────────────────────┐ │
-│  │              HexagonField (background)                 │ │
-│  │  - Canvas rendering via engine.ts                      │ │
-│  │  - GSAP ticker for smooth 60fps animation              │ │
-│  │  - Mouse-reactive hexagon scaling                      │ │
-│  └───────────────────────────────────────────────────────┘ │
+│  ┌───────────────────────────────────────────────────────┐  │
+│  │              HexagonField (background)                │  │
+│  │  - Canvas rendering via engine.ts                     │  │
+│  │  - GSAP ticker for smooth 60fps animation             │  │
+│  │  - Mouse-reactive hexagon scaling                     │  │
+│  └───────────────────────────────────────────────────────┘  │
 │                           │                                 │
 │                    +page.svelte                             │
-│  ┌───────────────────────────────────────────────────────┐ │
-│  │  onMount / month change                                │ │
-│  │         ↓                                              │ │
-│  │  getAvailability(start, end)  ←── CalendarAPI.ts       │ │
-│  │         ↓                                              │ │
-│  │  booking.availability = response                       │ │
-│  │         ↓                                              │ │
-│  │  parseAvailabilityToSlots()   ←── utils.ts             │ │
-│  │         ↓                                              │ │
-│  │  booking.availableSlots = slots                        │ │
-│  └───────────────────────────────────────────────────────┘ │
+│  ┌───────────────────────────────────────────────────────┐  │
+│  │  onMount / month change                               │  │
+│  │         ↓                                             │  │
+│  │  getAvailability(start, end)  ←── CalendarAPI.ts      │  │
+│  │         ↓                                             │  │
+│  │  booking.availability = response                      │  │
+│  │         ↓                                             │  │
+│  │  parseAvailabilityToSlots()   ←── utils.ts            │  │
+│  │         ↓                                             │  │
+│  │  booking.availableSlots = slots                       │  │
+│  └───────────────────────────────────────────────────────┘  │
 │                           ↓                                 │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌────────────┐ │
-│  │ Calendar │→ │TimeSlots │→ │  Form    │→ │Confirmation│ │
-│  │ (ripple) │  │(stagger) │  │          │  │(confetti)  │ │
-│  │          │  │          │  │          │  │ [Threlte]  │ │
-│  └──────────┘  └──────────┘  └──────────┘  └────────────┘ │
-│       ↑              ↑             ↓                       │
-│       └──────────────┴─────────────┘                       │
-│              booking.svelte.ts (state)                     │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌────────────┐   │
+│  │ Calendar │→ │TimeSlots │→ │  Form    │→ │Confirmation│   │
+│  │ (ripple) │  │(stagger) │  │          │  │(confetti)  │   │
+│  │          │  │          │  │          │  │ [Threlte]  │   │
+│  └──────────┘  └──────────┘  └──────────┘  └────────────┘   │
+│       ↑              ↑             ↓                        │
+│       └──────────────┴─────────────┘                        │
+│              booking.svelte.ts (state)                      │
 └─────────────────────────────────────────────────────────────┘
 ```
 

@@ -1,159 +1,185 @@
 <script lang="ts">
-	import { onDestroy } from 'svelte';
-	import * as THREE from 'three';
+	import { T, Canvas, useTask } from '@threlte/core';
+	import { browser } from '$app/environment';
+	import { onMount } from 'svelte';
 
-	let container: HTMLDivElement;
-	let animationId: number;
-	let renderer: THREE.WebGLRenderer | null = null;
-	let prefersReducedMotion = false;
+	// Confetti colors
+	const colors = [0x667eea, 0x764ba2, 0x10b981, 0xfbbf24, 0xf472b6, 0x60a5fa, 0xa78bfa];
 
-	$effect(() => {
-		prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-		if (prefersReducedMotion || !container) return;
+	// Geometry types for variety
+	const geometryTypes = ['box', 'tetra', 'octa', 'plane'] as const;
 
-		// Scene setup
-		const scene = new THREE.Scene();
-		const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
-		camera.position.z = 30;
+	interface ConfettiParticle {
+		id: number;
+		type: typeof geometryTypes[number];
+		color: number;
+		position: [number, number, number];
+		rotation: [number, number, number];
+		velocity: { x: number; y: number; z: number };
+		rotationSpeed: { x: number; y: number; z: number };
+		gravity: number;
+		opacity: number;
+		life: number;
+		maxLife: number;
+	}
 
-		// Renderer
-		renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-		renderer.setSize(container.clientWidth, container.clientHeight);
-		renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-		renderer.setClearColor(0x000000, 0);
-		container.appendChild(renderer.domElement);
+	// Generate confetti particles
+	let particles = $state<ConfettiParticle[]>([]);
 
-		// Create gradient orbs
-		const orbs: THREE.Mesh[] = [];
-		const orbData: { speed: THREE.Vector3; rotationSpeed: THREE.Vector3; floatOffset: number }[] = [];
+	onMount(() => {
+		// Create burst of particles
+		const newParticles: ConfettiParticle[] = [];
+		
+		for (let i = 0; i < 80; i++) {
+			const angle = Math.random() * Math.PI * 2;
+			const elevation = (Math.random() - 0.3) * Math.PI;
+			const speed = 0.3 + Math.random() * 0.5;
 
-		const colors = [
-			new THREE.Color(0x667eea), // Primary purple
-			new THREE.Color(0x764ba2), // Secondary purple
-			new THREE.Color(0x8b5cf6), // Violet
-			new THREE.Color(0x6366f1), // Indigo
-			new THREE.Color(0xa78bfa), // Light purple
-		];
-
-		for (let i = 0; i < 5; i++) {
-			const geometry = new THREE.IcosahedronGeometry(2 + Math.random() * 3, 1);
-			const material = new THREE.MeshBasicMaterial({
-				color: colors[i % colors.length],
-				transparent: true,
-				opacity: 0.15 + Math.random() * 0.1,
-				wireframe: false,
-			});
-
-			const orb = new THREE.Mesh(geometry, material);
-			orb.position.set(
-				(Math.random() - 0.5) * 20,
-				(Math.random() - 0.5) * 30,
-				(Math.random() - 0.5) * 10 - 5
-			);
-
-			orbs.push(orb);
-			scene.add(orb);
-
-			orbData.push({
-				speed: new THREE.Vector3(
-					(Math.random() - 0.5) * 0.005,
-					(Math.random() - 0.5) * 0.005,
-					(Math.random() - 0.5) * 0.002
-				),
-				rotationSpeed: new THREE.Vector3(
-					Math.random() * 0.002,
-					Math.random() * 0.002,
-					Math.random() * 0.001
-				),
-				floatOffset: Math.random() * Math.PI * 2
+			newParticles.push({
+				id: i,
+				type: geometryTypes[Math.floor(Math.random() * geometryTypes.length)],
+				color: colors[Math.floor(Math.random() * colors.length)],
+				position: [
+					(Math.random() - 0.5) * 5,
+					(Math.random() - 0.5) * 5,
+					(Math.random() - 0.5) * 5
+				],
+				rotation: [
+					Math.random() * Math.PI * 2,
+					Math.random() * Math.PI * 2,
+					Math.random() * Math.PI * 2
+				],
+				velocity: {
+					x: Math.cos(angle) * Math.cos(elevation) * speed,
+					y: Math.sin(elevation) * speed * 1.5,
+					z: Math.sin(angle) * Math.cos(elevation) * speed
+				},
+				rotationSpeed: {
+					x: (Math.random() - 0.5) * 0.2,
+					y: (Math.random() - 0.5) * 0.2,
+					z: (Math.random() - 0.5) * 0.2
+				},
+				gravity: 0.008 + Math.random() * 0.004,
+				opacity: 1,
+				life: 0,
+				maxLife: 150 + Math.random() * 100
 			});
 		}
 
-		// Add soft ambient particles
-		const particleCount = 50;
-		const particleGeometry = new THREE.BufferGeometry();
-		const positions = new Float32Array(particleCount * 3);
-
-		for (let i = 0; i < particleCount * 3; i += 3) {
-			positions[i] = (Math.random() - 0.5) * 40;
-			positions[i + 1] = (Math.random() - 0.5) * 50;
-			positions[i + 2] = (Math.random() - 0.5) * 20 - 10;
-		}
-
-		particleGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-
-		const particleMaterial = new THREE.PointsMaterial({
-			color: 0x667eea,
-			size: 0.15,
-			transparent: true,
-			opacity: 0.4,
-			sizeAttenuation: true
-		});
-
-		const particles = new THREE.Points(particleGeometry, particleMaterial);
-		scene.add(particles);
-
-		let time = 0;
-
-		// Animation loop
-		function animate() {
-			animationId = requestAnimationFrame(animate);
-			time += 0.01;
-
-			// Animate orbs
-			orbs.forEach((orb, i) => {
-				const data = orbData[i];
-				
-				// Gentle floating motion
-				orb.position.x += Math.sin(time + data.floatOffset) * 0.02;
-				orb.position.y += Math.cos(time * 0.7 + data.floatOffset) * 0.015;
-				
-				// Slow rotation
-				orb.rotation.x += data.rotationSpeed.x;
-				orb.rotation.y += data.rotationSpeed.y;
-
-				// Subtle scale pulsing
-				const scale = 1 + Math.sin(time * 0.5 + data.floatOffset) * 0.05;
-				orb.scale.setScalar(scale);
-			});
-
-			// Rotate particles slowly
-			particles.rotation.y += 0.0003;
-			particles.rotation.x += 0.0001;
-
-			renderer?.render(scene, camera);
-		}
-
-		animate();
-
-		// Handle resize
-		const handleResize = () => {
-			if (!container || !renderer) return;
-			camera.aspect = container.clientWidth / container.clientHeight;
-			camera.updateProjectionMatrix();
-			renderer.setSize(container.clientWidth, container.clientHeight);
-		};
-
-		window.addEventListener('resize', handleResize);
-
-		return () => {
-			window.removeEventListener('resize', handleResize);
-		};
+		particles = newParticles;
 	});
 
-	onDestroy(() => {
-		if (animationId) cancelAnimationFrame(animationId);
-		if (renderer) {
-			renderer.dispose();
-			renderer.forceContextLoss();
-		}
-	});
+	// Generate sparkle positions
+	const sparkleCount = 30;
+	const sparklePositions = new Float32Array(sparkleCount * 3);
+	for (let i = 0; i < sparkleCount; i++) {
+		sparklePositions[i * 3] = (Math.random() - 0.5) * 60;
+		sparklePositions[i * 3 + 1] = (Math.random() - 0.5) * 60;
+		sparklePositions[i * 3 + 2] = (Math.random() - 0.5) * 30;
+	}
+
+	let sparkleOpacity = $state(0.8);
 </script>
 
-<div class="background-scene" bind:this={container}></div>
+<!-- Confetti Particle Component -->
+{#snippet ConfettiMesh(particle: ConfettiParticle)}
+	<T.Mesh
+		position={particle.position}
+		rotation={particle.rotation}
+	>
+		{#if particle.type === 'box'}
+			<T.BoxGeometry args={[0.8, 0.8, 0.8]} />
+		{:else if particle.type === 'tetra'}
+			<T.TetrahedronGeometry args={[0.6]} />
+		{:else if particle.type === 'octa'}
+			<T.OctahedronGeometry args={[0.5]} />
+		{:else}
+			<T.PlaneGeometry args={[1, 0.5]} />
+		{/if}
+		<T.MeshBasicMaterial
+			color={particle.color}
+			transparent
+			opacity={particle.opacity}
+			side={2}
+		/>
+	</T.Mesh>
+{/snippet}
+
+{#if browser}
+	<div class="confirmation-scene">
+		<Canvas>
+			<T.PerspectiveCamera makeDefault position={[0, 0, 50]} fov={60} />
+
+			<!-- Animation Controller -->
+			<T.Group
+				oncreate={({ }) => {
+					let frame = 0;
+					const animate = () => {
+						frame++;
+						
+						// Update particles
+						particles = particles.map(p => {
+							const newLife = p.life + 1;
+							const lifeRatio = newLife / p.maxLife;
+							
+							return {
+								...p,
+								position: [
+									p.position[0] + p.velocity.x,
+									p.position[1] + p.velocity.y,
+									p.position[2] + p.velocity.z
+								] as [number, number, number],
+								rotation: [
+									p.rotation[0] + p.rotationSpeed.x,
+									p.rotation[1] + p.rotationSpeed.y,
+									p.rotation[2] + p.rotationSpeed.z
+								] as [number, number, number],
+								velocity: {
+									x: p.velocity.x * 0.99 + (p.type === 'plane' ? Math.sin(frame * 0.1 + p.life) * 0.005 : 0),
+									y: (p.velocity.y - p.gravity) * 0.99,
+									z: p.velocity.z * 0.99 + (p.type === 'plane' ? Math.cos(frame * 0.1 + p.life) * 0.005 : 0)
+								},
+								opacity: lifeRatio > 0.7 ? 1 - ((lifeRatio - 0.7) / 0.3) : p.opacity,
+								life: newLife
+							};
+						});
+
+						// Twinkle sparkles
+						sparkleOpacity = 0.5 + Math.sin(frame * 0.1) * 0.3;
+
+						requestAnimationFrame(animate);
+					};
+					animate();
+				}}
+			/>
+
+			<!-- Confetti Particles -->
+			{#each particles as particle (particle.id)}
+				{@render ConfettiMesh(particle)}
+			{/each}
+
+			<!-- Sparkles -->
+			<T.Points>
+				<T.BufferGeometry>
+					<T.BufferAttribute
+						attach="attributes-position"
+						args={[sparklePositions, 3]}
+					/>
+				</T.BufferGeometry>
+				<T.PointsMaterial
+					color={0xffffff}
+					size={1.5}
+					transparent
+					opacity={sparkleOpacity}
+					sizeAttenuation
+				/>
+			</T.Points>
+		</Canvas>
+	</div>
+{/if}
 
 <style>
-	.background-scene {
+	.confirmation-scene {
 		position: absolute;
 		top: 0;
 		left: 0;
@@ -162,10 +188,5 @@
 		z-index: 0;
 		pointer-events: none;
 		overflow: hidden;
-		opacity: 0.2;
-	}
-
-	.background-scene :global(canvas) {
-		display: block;
 	}
 </style>

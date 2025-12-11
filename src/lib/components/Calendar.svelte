@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import type { CalendarDay } from '$lib/types/CalendarDay';
 	import { MONTH_NAMES, WEEK_DAYS } from '$lib/types/constants';
 	import { calendarRippleIn } from '$lib/utils/animations';
@@ -46,7 +45,7 @@
 		previousMonth = newMonth;
 	});
 
-	onMount(() => {
+	$effect(() => {
 		if (gridElement) {
 			const days = gridElement.querySelectorAll('.calendar-day');
 			calendarRippleIn(days);

@@ -62,6 +62,8 @@
 
 
   let canvas: HTMLCanvasElement | null = null;
+ 
+  // svelte-ignore state_referenced_locally
   let engine = createHexFieldEngine({
     columns, 
     rows,

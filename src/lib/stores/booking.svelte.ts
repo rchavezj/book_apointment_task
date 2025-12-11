@@ -1,6 +1,6 @@
-import type { BookingStep, FormData } from '$lib/types/FormInfo';
-import type { AvailabilitySlot } from '$lib/client/CalendarAPI';
 import type { TimeSlot } from '$lib/utils/utils';
+import type { AvailabilitySlot } from '$lib/client/CalendarAPI';
+import type { BookingStep, FormData } from '$lib/types/FormInfo';
 
 export const today = new Date();
 

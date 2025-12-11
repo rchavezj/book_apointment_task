@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import type { TimeSlot } from '$lib/utils/utils';
 	import { staggerFadeIn } from '$lib/utils/animations';
 
@@ -15,7 +14,7 @@
 
 	
 	let previousSlotCount = $state(0);
-	let slotsContainer = $state<HTMLDivElement | undefined>();
+	let slotsContainer: HTMLDivElement;
 
 	// Animate slots when they change
 	$effect(() => {

@@ -1,8 +1,8 @@
 # ACME Meeting Booking Page
 
-A modern, visually stunning meeting booking interface built for the ChaseLabs SDR platform. Features an interactive hexagon background, smooth GSAP animations, and Three.js effects for a premium user experience.
+A modern, visually stunning meeting booking interface built for the ChaseLabs SDR platform. Features an interactive hexagon background, smooth GSAP animations, and Threlte (Svelte + Three.js) effects for a premium user experience.
 
-![Booking Interface](preview.png)
+![Booking Interface](https://github.com/rchavezj/book_apointment_task/blob/testing-animation-branch/static/version-2.png)
 
 ## 🎯 Overview
 
@@ -11,17 +11,20 @@ This project demonstrates a complete meeting booking flow where prospects can:
 1. **Select a Date** — Browse a calendar showing available dates
 2. **Choose a Time** — Pick from available 30-minute time slots
 3. **Enter Details** — Provide contact information
-4. **Confirm Booking** — Receive confirmation with celebratory animations
+4. **Confirm Booking** — Receive confirmation with celebratory 3D animations
 
 ## 🛠 Tech Stack
 
-- **Framework:** SvelteKit with Svelte 5 (Runes mode)
-- **Language:** TypeScript
-- **Animation:** GSAP + Three.js
-- **Styling:** CSS with custom properties
-- **Fonts:** DM Sans + Fraunces (Google Fonts)
-- **Deployment:** Vercel
-- **API:** MeetChase Calendar API (`calendar.meetchase.ai`)
+| Category | Technology |
+|----------|------------|
+| **Framework** | SvelteKit with Svelte 5 (Runes mode) |
+| **Language** | TypeScript |
+| **3D Graphics** | Threlte (Svelte + Three.js) |
+| **Animation** | GSAP |
+| **Styling** | Tailwind CSS + Custom CSS |
+| **Fonts** | DM Sans + Fraunces (Google Fonts) |
+| **Deployment** | Vercel |
+| **API** | MeetChase Calendar API |
 
 ## 📁 Project Structure
 
@@ -29,7 +32,7 @@ This project demonstrates a complete meeting booking flow where prospects can:
 src/
 ├── lib/
 │   ├── api/
-│   │   └── calendar.ts              # API client for MeetChase endpoints
+│   │   └── CalendarAPI.ts           # API client for MeetChase endpoints
 │   │
 │   ├── components/
 │   │   ├── BookingForm.svelte       # User details form
@@ -38,8 +41,9 @@ src/
 │   │   ├── RepCard.svelte           # Sales rep info card
 │   │   ├── TimeSlots.svelte         # Time slot selector (GSAP stagger)
 │   │   ├── MagneticButton.svelte    # Button with magnetic hover effect
-│   │   ├── BackgroundScene.svelte   # Three.js floating orbs
-│   │   ├── ConfirmationScene.svelte # Three.js confetti burst
+│   │   │
+│   │   ├── BackgroundScene.svelte   # Threlte floating orbs (3D)
+│   │   ├── ConfirmationScene.svelte # Threlte confetti burst (3D)
 │   │   │
 │   │   └── HexagonField/            # Interactive hexagon background
 │   │       ├── HexagonField.svelte  # Main component wrapper
@@ -54,6 +58,7 @@ src/
 │   │   ├── constants.ts             # App constants (rep info, config)
 │   │   ├── FormInfo.ts              # Form data types
 │   │   ├── RepInfo.ts               # Sales rep interface
+│   │   └── types.ts                 # Shared type definitions
 │   │
 │   └── utils/
 │       ├── utils.ts                 # Date formatting, slot parsing
@@ -62,7 +67,7 @@ src/
 ├── routes/
 │   ├── +layout.svelte               # Root layout with HexagonField
 │   ├── +page.svelte                 # Main booking page
-│   ├── layout.css                   # Layout styles
+│   ├── layout.css                   # Layout styles (Tailwind imports)
 │   └── page.css                     # Page-specific styles
 │
 └── app.html                         # HTML template
@@ -111,6 +116,45 @@ An interactive canvas-based hexagon grid that responds to mouse movement:
 | `colorEase` | `string` | GSAP easing for color transitions |
 | `fullScreenFixed` | `boolean` | Fixed fullscreen positioning |
 
+### Threlte 3D Effects
+
+The app uses [Threlte](https://threlte.xyz/) — a Svelte-native Three.js wrapper that provides:
+
+- **SSR Safety** — No manual browser guards needed
+- **Declarative Syntax** — Write 3D scenes like Svelte components
+- **Automatic Cleanup** — Memory management handled automatically
+- **Svelte Reactivity** — 3D objects respond to state changes
+
+#### BackgroundScene.svelte
+
+Floating gradient orbs with ambient particles:
+
+```svelte
+<Canvas>
+  <T.PerspectiveCamera makeDefault position={[0, 0, 30]} fov={75} />
+  
+  {#each orbs as orb}
+    <Float speed={orb.floatSpeed} floatIntensity={orb.floatIntensity}>
+      <T.Mesh position={orb.position}>
+        <T.IcosahedronGeometry args={[orb.size, 1]} />
+        <T.MeshBasicMaterial color={orb.color} transparent opacity={orb.opacity} />
+      </T.Mesh>
+    </Float>
+  {/each}
+  
+  <T.Points><!-- Ambient particles --></T.Points>
+</Canvas>
+```
+
+#### ConfirmationScene.svelte
+
+Celebratory confetti burst with physics:
+
+- 80 confetti particles (boxes, tetrahedrons, octahedrons, planes)
+- Gravity and air resistance simulation
+- Fade-out over particle lifetime
+- Twinkling sparkle particles
+
 ### GSAP Animations
 
 Located in `src/lib/utils/animations.ts`:
@@ -126,37 +170,24 @@ Located in `src/lib/utils/animations.ts`:
 | `shakeAnimation()` | Error states | Shake effect for errors |
 | `fieldFocusAnimation()` | Form inputs | Glow effect on focus |
 
-### Three.js Effects
-
-| Component | Effect |
-|-----------|--------|
-| `BackgroundScene.svelte` | Floating purple gradient orbs with particles |
-| `ConfirmationScene.svelte` | 3D confetti burst on booking success |
-
-Features:
-- Respects `prefers-reduced-motion`
-- WebGL fallback for unsupported browsers
-- Proper memory cleanup on destroy
-- HiDPI/Retina support
-
 ## 🔌 API Integration
 
-The application integrates with the MeetChase Calendar API:
+The application integrates with the MeetChase Calendar API (`calendar.meetchase.ai`):
 
 ### GET `/api/availability`
 
 Fetches available time slots for a date range.
 
-**Parameters:**
-- `start` (string): Start date in `YYYY-MM-DD` format
-- `end` (string): End date in `YYYY-MM-DD` format
+```typescript
+const slots = await getAvailability('2025-01-01', '2025-01-31');
+```
 
 **Response:**
 ```json
 [
   {
-    "start": "2024-03-15T09:00:00+01:00",
-    "end": "2024-03-15T11:00:00+01:00"
+    "start": "2025-01-15T09:00:00+01:00",
+    "end": "2025-01-15T11:00:00+01:00"
   }
 ]
 ```
@@ -165,18 +196,12 @@ Fetches available time slots for a date range.
 
 Schedules a meeting if the requested time slot is available.
 
-**Request Body:**
-```json
-{
-  "start": "2024-03-15T10:00:00+01:00",
-  "end": "2024-03-15T11:00:00+01:00",
-  "attendees": [
-    {
-      "email": "john.doe@example.com",
-      "name": "John Doe"
-    }
-  ]
-}
+```typescript
+await scheduleMeeting({
+  start: "2025-01-15T10:00:00+01:00",
+  end: "2025-01-15T10:30:00+01:00",
+  attendees: [{ email: "john@example.com", name: "John Doe" }]
+});
 ```
 
 **Response:** `201 Created` with confirmation string
@@ -260,8 +285,8 @@ cd book_appointment_task
 # Install dependencies
 bun install
 
-# Install animation libraries
-bun add gsap three
+# Install required packages
+bun add gsap three @threlte/core @threlte/extras
 bun add -d @types/three
 
 # Start development server
@@ -295,7 +320,7 @@ export const ACME_REP: RepInfo = {
 
 ### API Base URL
 
-Edit `src/lib/api/calendar.ts`:
+Edit `src/lib/api/CalendarAPI.ts`:
 
 ```typescript
 const API_BASE = 'https://calendar.meetchase.ai';
@@ -312,6 +337,14 @@ Edit `src/routes/+layout.svelte`:
 >
 ```
 
+### 3D Scene Colors
+
+Edit the color arrays in `BackgroundScene.svelte` and `ConfirmationScene.svelte`:
+
+```typescript
+const colors = [0x667eea, 0x764ba2, 0x8b5cf6, 0x6366f1, 0xa78bfa];
+```
+
 ## 🎨 Styling
 
 The app uses a refined, professional aesthetic with:
@@ -319,8 +352,19 @@ The app uses a refined, professional aesthetic with:
 - **Primary gradient:** `#667eea` → `#764ba2` (purple)
 - **Accent colors:** `#F6AD55` (orange), `#F5F3FF` (light purple)
 - **Typography:** Fraunces (headings) + DM Sans (body)
-- **Animations:** GSAP-powered micro-interactions
+- **Animations:** GSAP-powered micro-interactions + Threlte 3D
 - **Responsive:** Mobile-friendly with breakpoint at 900px
+
+### Tailwind Integration
+
+The project uses Tailwind CSS v4 with plugins:
+
+```css
+/* layout.css */
+@import 'tailwindcss';
+@plugin '@tailwindcss/forms';
+@plugin '@tailwindcss/typography';
+```
 
 ## 📱 Responsive Design
 
@@ -354,7 +398,7 @@ The application handles various error states:
 │  ┌───────────────────────────────────────────────────────┐ │
 │  │  onMount / month change                                │ │
 │  │         ↓                                              │ │
-│  │  getAvailability(start, end)  ←── calendar.ts API      │ │
+│  │  getAvailability(start, end)  ←── CalendarAPI.ts       │ │
 │  │         ↓                                              │ │
 │  │  booking.availability = response                       │ │
 │  │         ↓                                              │ │
@@ -366,6 +410,7 @@ The application handles various error states:
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌────────────┐ │
 │  │ Calendar │→ │TimeSlots │→ │  Form    │→ │Confirmation│ │
 │  │ (ripple) │  │(stagger) │  │          │  │(confetti)  │ │
+│  │          │  │          │  │          │  │ [Threlte]  │ │
 │  └──────────┘  └──────────┘  └──────────┘  └────────────┘ │
 │       ↑              ↑             ↓                       │
 │       └──────────────┴─────────────┘                       │
@@ -376,28 +421,71 @@ The application handles various error states:
 ## 🧪 Testing
 
 ```bash
-# Run tests
+# Run unit tests
 bun run test
 
 # Run e2e tests
 bun run test:e2e
 ```
 
+### Test File
+
+```typescript
+// page.svelte.spec.ts
+import { page } from 'vitest/browser';
+import { describe, expect, it } from 'vitest';
+import { render } from 'vitest-browser-svelte';
+import Page from './+page.svelte';
+
+describe('/+page.svelte', () => {
+  it('should render h1', async () => {
+    render(Page);
+    const heading = page.getByRole('heading', { level: 1 });
+    await expect.element(heading).toBeInTheDocument();
+  });
+});
+```
+
 ## 📦 Dependencies
 
 ### Production
-- `svelte` / `@sveltejs/kit` — Framework
-- `gsap` — Animation library
-- `three` — 3D graphics (optional effects)
+
+| Package | Purpose |
+|---------|---------|
+| `svelte` / `@sveltejs/kit` | Framework |
+| `gsap` | Animation library |
+| `three` | 3D graphics engine |
+| `@threlte/core` | Svelte Three.js wrapper |
+| `@threlte/extras` | Threlte utilities (Float, etc.) |
 
 ### Development
-- `typescript` — Type safety
-- `@types/three` — Three.js types
-- `vite` — Build tool
 
-## 🚧 Known Issues
+| Package | Purpose |
+|---------|---------|
+| `typescript` | Type safety |
+| `@types/three` | Three.js types |
+| `vite` | Build tool |
+| `tailwindcss` | Utility CSS |
+| `vitest` | Testing |
 
-- **Paraglide i18n:** If deploying to Vercel and encountering `project.inlang/settings.json` error, either create the config or remove `@inlang/paraglide-sveltekit` from `vite.config.ts`
+## 🚧 Deployment Notes
+
+### Vercel
+
+The app deploys seamlessly to Vercel. If you encounter issues:
+
+1. **Paraglide i18n error:** If you see `project.inlang/settings.json` error, either create the config or remove `@inlang/paraglide-sveltekit` from `vite.config.ts`
+
+2. **SSR with Three.js:** The Threlte components are SSR-safe, but if you add custom Three.js code, wrap it with:
+   ```svelte
+   <script>
+     import { browser } from '$app/environment';
+   </script>
+   
+   {#if browser}
+     <!-- Three.js content -->
+   {/if}
+   ```
 
 ## 📄 License
 
@@ -405,4 +493,4 @@ This project was created as part of the ChaseLabs Design Engineer Assessment.
 
 ---
 
-Built with ❤️ using SvelteKit, GSAP, Three.js, and the MeetChase API
+Built with ❤️ using SvelteKit, Threlte, GSAP, and the MeetChase API

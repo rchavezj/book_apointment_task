@@ -2,10 +2,7 @@
 
 A modern, visually stunning meeting booking interface built for the ChaseLabs SDR platform. Features an interactive hexagon background, smooth GSAP animations, and Three.js effects for a premium user experience.
 
-![Booking Interface](preview.png)
-
-![Booking Interface](version-2.png)
-
+![Booking Interface](https://github.com/rchavezj/book_apointment_task/blob/testing-animation-branch/static/version-2.png)
 
 ## 🎯 Overview
 

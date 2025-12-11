@@ -1,4 +1,4 @@
-import type { RepInfo } from './types';
+import type { RepInfo } from '$lib/types/RepInfo';
 
 export const ACME_REP: RepInfo = {
 	name: 'Sarah Chen',

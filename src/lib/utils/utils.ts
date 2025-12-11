@@ -1,5 +1,5 @@
 import type { CalendarDay } from '$lib/types/CalendarDay';
-import type { AvailabilitySlot } from '$lib/api/calendar';
+import type { AvailabilitySlot } from '$lib/client/CalendarAPI';
 
 export function generateCalendarDays(currentMonth: Date, today: Date): CalendarDay[] {
 	const year = currentMonth.getFullYear();
